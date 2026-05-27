@@ -1,0 +1,6 @@
+=== MANUAL PACKET LAYER EXTRACT (2026-05-25 15:18:46.498061) ===
+Index: 6 | Src: 192.168.29.134 -> Dst: 107.20.99.44 | Proto: TCP | Size: 55 bytes
+Index: 8 | Src: 107.20.99.44 -> Dst: 192.168.29.134 | Proto: TCP | Size: 66 bytes
+Index: 11 | Src: 13.206.149.115 -> Dst: 192.168.29.134 | Proto: TCP | Size: 82 bytes
+Index: 12 | Src: 192.168.29.134 -> Dst: 13.206.149.115 | Proto: TCP | Size: 86 bytes
+Index: 13 | Src: 13.206.149.115 -> Dst: 192.168.29.134 | Proto: TCP | Size: 54 bytes

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Network Security Audit Report</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 40px; }
+                .container { max-width: 1000px; background: white; margin: 0 auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+                .header { border-bottom: 3px solid #0056b3; padding-bottom: 20px; margin-bottom: 30px; }
+                .header h1 { margin: 0; color: #0056b3; font-size: 28px; }
+                .meta-box { display: flex; gap: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px; font-size: 14px; border-left: 5px solid #6c757d; }
+                .badge { font-weight: bold; padding: 10px 15px; border-radius: 6px; margin-bottom: 25px; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+                .severity-critical { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+                .severity-medium { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+                .severity-low { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+                h3 { color: #111; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+                pre { background: #212529; color: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; }
+                .verdict-body { background: #fdfdfd; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; white-space: pre-line; line-height: 1.6; font-size: 15px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🛡️ Local AI Intrusion Detection Audit Log</h1>
+                </div>
+                <div class="meta-box">
+                    <div><strong>Timestamp:</strong> 2026-05-25 15:32:19</div>
+                    <div><strong>Source File:</strong> <code>traffic.pcapng.pcapng</code></div>
+                    <div><strong>Inference Core:</strong> <code>deepseek-r1:1.5b</code></div>
+                </div>
+                <div class="badge severity-critical">
+                    🚨 CRITICAL THREAT DETECTED
+                </div>
+                <h3>📊 Extracted Telemetry Network Wire Dump</h3>
+                <pre>Index: 6 | Src: 192.168.29.134 -> Dst: 107.20.99.44 | Proto: TCP | Size: 55 bytes
+Index: 8 | Src: 107.20.99.44 -> Dst: 192.168.29.134 | Proto: TCP | Size: 66 bytes
+Index: 11 | Src: 13.206.149.115 -> Dst: 192.168.29.134 | Proto: TCP | Size: 82 bytes
+Index: 12 | Src: 192.168.29.134 -> Dst: 13.206.149.115 | Proto: TCP | Size: 86 bytes
+Index: 13 | Src: 13.206.149.115 -> Dst: 192.168.29.134 | Proto: TCP | Size: 54 bytes
+</pre>
+                <h3>🧠 DeepSeek Expert Core Intelligence Verdict</h3>
+                <div class="verdict-body">The packet logs indicate that the host 192.168.29.134 is receiving multiple TCP packets in quick succession. This suggests a potential connection issue, possibly due to a loop or transient network error. It's advisable to check all relevant logs for connections back to this host and monitor it closely for signs of failure.
+
+```json
+{
+  "conclusion": {
+    "securityAnomalies": {
+      "possibleConnectionIssue": true,
+      "connectionLoss detected": false,
+      "dataPoints": {
+        "Index": 6, "Src": "192.168.29.134", "Dst": "107.20.99.44", "Proto": TCP, "Size": 55
+      },
+      "potentialCauses": [
+        "multiple TCP connections received quickly",
+        "possible network loop or transient issue"
+      ],
+      "nextAction": {
+        "steps": ["Check all logs for connection back to host 192.168.29.134"],
+        "priority": "High", "description": "Monitor the host 192.168.29.134's connections as it shows multiple TCP packets in quick succession."
+      }
+    },
+    "keywords": {
+      "C2 beaconing",
+      "port scans",
+      "DDoS"
+    },
+    "relatedTerms": []
+  }
+}
+```</div>
+            </div>
+        </body>
+        </html>
+        
