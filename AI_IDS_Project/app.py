@@ -508,113 +508,68 @@ def main_app():
                 else:
                     send_device_notification("✅ PCAP Loaded - No Threats", f"Uploaded file contains {len(packets)} packets...", "normal")
 
-    # Handle Live Sniffing
-if capture_mode == "Live Sniffing":
-    # Auto-detect available interfaces
-    try:
-        from scapy.all import get_if_list
-        available_interfaces = get_if_list()
-        
-        # Show available interfaces to user
-        st.info(f"📡 Available interfaces: {', '.join(available_interfaces) if available_interfaces else 'None detected'}")
-        
-        # Auto-select best interface
-        selected_interface = interface  # Use user input as default
-        common_interfaces = ['Wi-Fi', 'wlan0', 'eth0', 'en0', 'en1', 'ens3', 'ens4']
-        
-        # Try to find a better interface if user input doesn't exist
-        if selected_interface not in available_interfaces:
-            for iface in common_interfaces:
-                if iface in available_interfaces:
-                    selected_interface = iface
-                    break
-            # If still not found, use first available
-            if selected_interface not in available_interfaces and available_interfaces:
-                selected_interface = available_interfaces[0]
-                st.warning(f"Interface '{interface}' not found. Using '{selected_interface}' instead.")
-        
-        # Check if running on Streamlit Cloud
-        is_cloud = os.environ.get('STREAMLIT_SHARING', False) or os.environ.get('STREAMLIT_CLOUD', False)
-        if is_cloud:
-            st.warning("⚠️ Live sniffing may not work on Streamlit Cloud. This feature works best when run locally with admin/root privileges.")
-        
-        if st.button("🚀 Start Live Sniffing & Threat Hunting", key="live_sniff_btn"):
-            with st.spinner(f"Sniffing on {selected_interface} for {duration} seconds..."):
-                try:
-                    packets = sniff(iface=selected_interface, timeout=duration, count=500)
-                    data = []
-                    threat_count = 0
-                    for pkt in packets:
-                        if IP in pkt:
-                            size = len(pkt)
-                            is_threat = size > 1000
-                            if is_threat:
-                                threat_count += 1
-                            data.append({
-                                "index": len(data),
-                                "timestamp": datetime.datetime.now(),
-                                "src_ip": pkt[IP].src,
-                                "dst_ip": pkt[IP].dst,
-                                "protocol": "TCP" if TCP in pkt else "UDP" if UDP in pkt else "Other",
-                                "size": size,
-                                "is_threat": is_threat
-                            })
-                    df = pd.DataFrame(data)
+   # Handle Live Sniffing
+elif capture_mode == "Live Sniffing":
+    if st.button("🚀 Start Live Sniffing & Threat Hunting", key="live_sniff_btn"):
+        with st.spinner(f"Sniffing on {interface} for {duration} seconds..."):
+            try:
+                packets = sniff(iface=interface, timeout=duration, count=500)
+                data = []
+                threat_count = 0
+                for pkt in packets:
+                    if IP in pkt:
+                        size = len(pkt)
+                        is_threat = size > 1000
+                        if is_threat:
+                            threat_count += 1
+                        data.append({
+                            "index": len(data),
+                            "timestamp": datetime.datetime.now(),
+                            "src_ip": pkt[IP].src,
+                            "dst_ip": pkt[IP].dst,
+                            "protocol": "TCP" if TCP in pkt else "UDP" if UDP in pkt else "Other",
+                            "size": size,
+                            "is_threat": is_threat
+                        })
+                df = pd.DataFrame(data)
+                
+                if not df.empty:
+                    mean_size = df['size'].mean()
+                    std_size = df['size'].std() if df['size'].std() != 0 else 1.0
+                    df['z_score'] = (df['size'] - mean_size) / std_size
+                    df['anomaly'] = df['z_score'].abs() > 2.0
+                
+                st.session_state.captured_df = df.copy()
+                st.session_state.all_packets = packets
+                st.session_state.last_capture_type = "Live Sniffing"
+                
+                st.success(f"✅ Live Captured {len(packets)} packets, {threat_count} threats!")
+                
+                # Save to History
+                timestamp = datetime.datetime.now().strftime("%d %b %Y • %I:%M %p")
+                st.session_state.capture_history.insert(0, {
+                    "type": "Live Sniffing",
+                    "filename": f"Live_{interface}_{duration}s",
+                    "packets": len(packets),
+                    "anomalies": int(df['anomaly'].sum()) if 'anomaly' in df.columns else 0,
+                    "df": df.copy(),
+                    "packets_list": packets,
+                    "datetime": timestamp
+                })
+                if len(st.session_state.capture_history) > 20:
+                    st.session_state.capture_history = st.session_state.capture_history[:20]
+                save_history()
+                
+                # Alerts
+                if threat_count > 0:
+                    send_device_notification(f"🔴 Live Threat Detected: {threat_count} suspicious packets", "...", "critical")
+                elif not df.empty and df['anomaly'].sum() > 0:
+                    send_device_notification(f"⚠️ Anomaly Detected: {df['anomaly'].sum()} statistical outliers", "...", "warning")
+                else:
+                    send_device_notification("✅ Live Capture Complete - No Threats", "...", "normal")
                     
-                    if not df.empty:
-                        mean_size = df['size'].mean()
-                        std_size = df['size'].std() if df['size'].std() != 0 else 1.0
-                        df['z_score'] = (df['size'] - mean_size) / std_size
-                        df['anomaly'] = df['z_score'].abs() > 2.0
-                    
-                    st.session_state.captured_df = df.copy()
-                    st.session_state.all_packets = packets
-                    st.session_state.last_capture_type = "Live Sniffing"
-                    
-                    st.success(f"✅ Live Captured {len(packets)} packets, {threat_count} threats!")
-                    
-                    # Save to History
-                    timestamp = datetime.datetime.now().strftime("%d %b %Y • %I:%M %p")
-                    st.session_state.capture_history.insert(0, {
-                        "type": "Live Sniffing",
-                        "filename": f"Live_{selected_interface}_{duration}s",
-                        "packets": len(packets),
-                        "anomalies": int(df['anomaly'].sum()) if 'anomaly' in df.columns else 0,
-                        "df": df.copy(),
-                        "packets_list": packets,
-                        "datetime": timestamp
-                    })
-                    if len(st.session_state.capture_history) > 20:
-                        st.session_state.capture_history = st.session_state.capture_history[:20]
-                    save_history()
-                    
-                    # Alerts
-                    if threat_count > 0:
-                        send_device_notification(f"🔴 Live Threat Detected: {threat_count} suspicious packets", "...", "critical")
-                    elif not df.empty and df['anomaly'].sum() > 0:
-                        send_device_notification(f"⚠️ Anomaly Detected: {df['anomaly'].sum()} statistical outliers", "...", "warning")
-                    else:
-                        send_device_notification("✅ Live Capture Complete - No Threats", "...", "normal")
-                        
-                except Exception as e:
-                    st.error(f"❌ Sniffing Error: {str(e)}")
-                    if "Interface" in str(e) or "not found" in str(e):
-                        st.info("💡 Tip: Try running the app locally with admin/root privileges for live sniffing.")
-                        st.info("📂 Alternatively, upload a PCAP file for analysis.")
-                    df = pd.DataFrame()  # Prevent errors
-                    
-    except Exception as e:
-        st.error(f"❌ Error detecting interfaces: {str(e)}")
-        st.info("📂 Please upload a PCAP file for analysis on this platform.")
-        # Continue with existing interface selection as fallback
-        if st.button("🚀 Start Live Sniffing & Threat Hunting", key="live_sniff_btn"):
-            with st.spinner(f"Sniffing on {interface} for {duration} seconds..."):
-                try:
-                    # Keep original code as fallback
-                    packets = sniff(iface=interface, timeout=duration, count=500)
-                    # ... rest of original code
-                except Exception as e:
-                    st.error(f"Sniffing Error: {e}")
+            except Exception as e:
+                st.error(f"Sniffing Error: {e}")
 
     # Define labels for tabs
     tab_names = [
