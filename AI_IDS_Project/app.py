@@ -509,7 +509,7 @@ def main_app():
                     send_device_notification("✅ PCAP Loaded - No Threats", f"Uploaded file contains {len(packets)} packets...", "normal")
 
     # Handle Live Sniffing
-elif capture_mode == "Live Sniffing":
+if capture_mode == "Live Sniffing":
     # Auto-detect available interfaces
     try:
         from scapy.all import get_if_list
