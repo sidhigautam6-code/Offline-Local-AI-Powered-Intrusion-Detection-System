@@ -508,7 +508,7 @@ def main_app():
                 else:
                     send_device_notification("✅ PCAP Loaded - No Threats", f"Uploaded file contains {len(packets)} packets...", "normal")
 
-   # Handle Live Sniffing
+  # Handle Live Sniffing
 elif capture_mode == "Live Sniffing":
     if st.button("🚀 Start Live Sniffing & Threat Hunting", key="live_sniff_btn"):
         with st.spinner(f"Sniffing on {interface} for {duration} seconds..."):
